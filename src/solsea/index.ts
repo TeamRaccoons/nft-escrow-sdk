@@ -83,12 +83,16 @@ async function createBuyInstruction(
   const seller = escrowState.wallet;
   const sellerWalletAccount = escrowState.sellerTokenAccount;
 
-  const platformFeeAccount = escrowState.authorityAccount;
+  // Doesn't work when using what is documented, hardcoding works
+  const platformFeeAccount = new PublicKey(
+    "6T4f5bdrd9ffTtehqAj9BGyxahysRGcaUZeDzA1XN52N"
+  ); // escrowState.authorityAccount;
 
-  // Assume not Aart treatment
+  // Assume no AART treatment
   const sellerAartTokenAccount = SystemProgram.programId;
   const programAartTokenAccount = SystemProgram.programId;
   const stakeAuthority = SystemProgram.programId;
+
   const platformStakedAartTokenAccount = SystemProgram.programId;
 
   const keys = [
@@ -96,7 +100,7 @@ async function createBuyInstruction(
     { pubkey: authority, isWritable: true, isSigner: false },
     { pubkey: buyer, isWritable: true, isSigner: true },
     { pubkey: authority, isWritable: true, isSigner: false },
-    { pubkey: source, isWritable: true, isSigner: false },
+    { pubkey: source, isWritable: true, isSigner: true },
     { pubkey: seller, isWritable: true, isSigner: false },
     { pubkey: buyerNftTokenAccount, isWritable: true, isSigner: false },
     { pubkey: platformFeeAccount, isWritable: true, isSigner: false },
@@ -116,16 +120,18 @@ async function createBuyInstruction(
     },
 
     { pubkey: TOKEN_PROGRAM_ID, isWritable: false, isSigner: false },
-    { pubkey: SystemProgram.programId, isWritable: false, isSigner: false },
-    // Then optional: Royalty split accounts
+    { pubkey: SystemProgram.programId, isWritable: true, isSigner: false },
   ];
 
+  // Then optional: Royalty split accounts
   for (const creator of escrowState.creators.slice(
     0,
     escrowState.creatorCount
   )) {
     keys.push({ pubkey: creator, isWritable: true, isSigner: false });
   }
+
+  console.log(keys.map(({ pubkey }) => pubkey.toBase58()));
 
   return {
     programId: SOLSEA_ESCROW_PROGRAM_ID,

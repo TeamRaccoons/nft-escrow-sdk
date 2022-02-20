@@ -1,4 +1,9 @@
-import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
+import {
+  clusterApiUrl,
+  Connection,
+  PublicKey,
+  SystemProgram,
+} from "@solana/web3.js";
 import { createBuyTransaction, EscrowStateLayout } from "./solsea";
 
 // A random wallet pk found that will be capable of buying that thing
@@ -10,21 +15,16 @@ async function main() {
   const connection = new Connection(clusterApiUrl("mainnet-beta"));
 
   // Let's simulate buying this NFT ape thing
-  const escrowPk = new PublicKey(
-    "H9njixeG7grT8D84NT8r6aNup1oPodgDQLKgAtQhTGH2"
-  );
+  const escrowPk = new PublicKey("1aQYQjPHsBxZrdDWtFbGrdjjts1uwLTasfaTpuE3QXd");
 
   const escrowAccountInfo = await connection.getAccountInfo(escrowPk);
   const escrowState = EscrowStateLayout.decode(escrowAccountInfo.data);
-
-  console.log(escrowState);
 
   const buyTx = await createBuyTransaction(
     escrowPk,
     escrowState,
     USER_PUBLIC_KEY
   );
-
   const { value } = await connection.simulateTransaction(buyTx);
   console.log(value);
 }
