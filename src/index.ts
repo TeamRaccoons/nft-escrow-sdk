@@ -9,9 +9,9 @@ const USER_PUBLIC_KEY = new PublicKey(
 async function main() {
   const connection = new Connection(clusterApiUrl("mainnet-beta"));
 
-  // Let's simulate buying this NFT ape thing https://explorer.solana.com/address/9vsQPXKuLbXeEywU4FKL7xZL1fFnuvohqX7WkbUhTMHg
+  // Let's simulate buying this NFT ape thing
   const escrowPk = new PublicKey(
-    "Goz6DvgZ3Bi29UYJKys4RLJVRHoLqG6pgrTyitfKAmeS"
+    "H9njixeG7grT8D84NT8r6aNup1oPodgDQLKgAtQhTGH2"
   );
 
   const escrowAccountInfo = await connection.getAccountInfo(escrowPk);

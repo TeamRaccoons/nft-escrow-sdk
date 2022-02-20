@@ -1,4 +1,4 @@
-import { seq, struct, u16, u8 } from "@solana/buffer-layout";
+import { seq, struct, u16, u32, u8 } from "@solana/buffer-layout";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Token,
@@ -12,7 +12,6 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import { publicKey, uint64 } from "../layout";
-import { vec } from "../layout/borsh";
 
 export const SOLSEA_ESCROW_PROGRAM_ID = new PublicKey(
   "617jbWo616ggkDxvW1Le8pV38XLbVSyWY8ae6QUmGBAU"
@@ -35,8 +34,8 @@ interface EscrowState {
   currencyMint: PublicKey;
   authorityAccount: PublicKey;
   creatorCount: number;
-  creatorPercentage: number[];
   sellerFee: number;
+  creatorPercentage: number[];
   creators: PublicKey[];
   sellerTokenAccount: PublicKey;
   buyer: PublicKey;
@@ -57,7 +56,7 @@ export const EscrowStateLayout = struct<EscrowState>([
   u8("creatorCount"),
   u16("sellerFee"),
   seq(u8(), 5, "creatorPercentage"),
-  //vec(publicKey("x"), "creators"),
+  seq(publicKey("creator"), 5, "creators"),
   publicKey("sellerTokenAccount"),
   publicKey("buyer"),
   publicKey("programStakeAccount"),
@@ -74,7 +73,12 @@ async function createBuyInstruction(
     SOLSEA_ESCROW_PROGRAM_ID
   );
 
-  const source = buyer; // This might not be true when currencyMint isn't SOL
+  const source = buyer; // This won't be true when currencyMint isn't SOL
+  if (!escrowState.currencyMint.equals(PublicKey.default)) {
+    throw new Error(
+      `currency mint other than SOL not supported ${escrowState.currencyMint.toBase58()}`
+    );
+  }
 
   const seller = escrowState.wallet;
   const sellerWalletAccount = escrowState.sellerTokenAccount;
@@ -114,8 +118,14 @@ async function createBuyInstruction(
     { pubkey: TOKEN_PROGRAM_ID, isWritable: false, isSigner: false },
     { pubkey: SystemProgram.programId, isWritable: false, isSigner: false },
     // Then optional: Royalty split accounts
-    // {pubkey: SystemProgram.programId, isWritable: false, isSigner: false},
   ];
+
+  for (const creator of escrowState.creators.slice(
+    0,
+    escrowState.creatorCount
+  )) {
+    keys.push({ pubkey: creator, isWritable: true, isSigner: false });
+  }
 
   return {
     programId: SOLSEA_ESCROW_PROGRAM_ID,
@@ -145,7 +155,7 @@ export async function createBuyTransaction(
       buyer,
       buyer
     ),
-    await createBuyInstruction(escrow, escrowState, buyerAta, buyer),
+    await createBuyInstruction(escrow, escrowState, buyer, buyerAta),
   ];
   return new Transaction({ feePayer: buyer }).add(...ixs);
 }
