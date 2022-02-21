@@ -56,7 +56,7 @@ pub struct EscrowStateV2 {
 	/// Mint for currency, if currency is SOL, key is system program id
 	pub currency_mint: Pubkey,
 
-	/// Account for platform fee
+	/// Account for authority
 	pub authority_account: Pubkey,
 
 	/// Buyer 

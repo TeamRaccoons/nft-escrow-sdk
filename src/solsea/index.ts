@@ -18,6 +18,10 @@ export const SOLSEA_ESCROW_PROGRAM_ID = new PublicKey(
   "617jbWo616ggkDxvW1Le8pV38XLbVSyWY8ae6QUmGBAU"
 );
 
+export const PLATFORM_FEE_ACCOUNT = new PublicKey(
+  "6T4f5bdrd9ffTtehqAj9BGyxahysRGcaUZeDzA1XN52N"
+);
+
 /// Prefix for staking AART
 const STAKE_PREFIX = "aartstake3";
 /// Prefix for staking authotiy
@@ -84,11 +88,6 @@ async function createBuyInstruction(
   const seller = escrowState.wallet;
   const sellerWalletAccount = escrowState.sellerTokenAccount;
 
-  // Doesn't work when using what is documented, hardcoding works
-  const platformFeeAccount = new PublicKey(
-    "6T4f5bdrd9ffTtehqAj9BGyxahysRGcaUZeDzA1XN52N"
-  ); // escrowState.authorityAccount;
-
   // Assume no AART treatment
   const sellerAartTokenAccount = SystemProgram.programId;
   const programAartTokenAccount = SystemProgram.programId;
@@ -104,7 +103,7 @@ async function createBuyInstruction(
     { pubkey: source, isWritable: true, isSigner: true },
     { pubkey: seller, isWritable: true, isSigner: false },
     { pubkey: buyerNftTokenAccount, isWritable: true, isSigner: false },
-    { pubkey: platformFeeAccount, isWritable: true, isSigner: false },
+    { pubkey: PLATFORM_FEE_ACCOUNT, isWritable: true, isSigner: false },
     {
       pubkey: escrowState.programNftAccount,
       isWritable: true,
