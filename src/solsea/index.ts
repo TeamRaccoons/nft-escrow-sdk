@@ -6,6 +6,7 @@ import {
   u64,
 } from "@solana/spl-token";
 import {
+  Connection,
   PublicKey,
   SystemProgram,
   Transaction,
@@ -22,7 +23,7 @@ const STAKE_PREFIX = "aartstake3";
 /// Prefix for staking authotiy
 const STAKE_AUTHORITY_PREFIX = "stakeauthority3";
 
-interface EscrowState {
+interface SolseaEscrowState {
   state: number;
   nonce: number;
   price: u64;
@@ -42,7 +43,7 @@ interface EscrowState {
   programStakeAccount: PublicKey;
 }
 
-export const EscrowStateLayout = struct<EscrowState>([
+export const EscrowStateLayout = struct<SolseaEscrowState>([
   u8("state"),
   u8("nonce"),
   uint64("price"),
@@ -64,7 +65,7 @@ export const EscrowStateLayout = struct<EscrowState>([
 
 async function createBuyInstruction(
   escrow: PublicKey,
-  escrowState: EscrowState,
+  escrowState: SolseaEscrowState,
   buyer: PublicKey,
   buyerNftTokenAccount: PublicKey
 ): Promise<TransactionInstruction> {
@@ -140,28 +141,35 @@ async function createBuyInstruction(
   };
 }
 
-// buy tx as an example https://explorer.solana.com/tx/5eE2FRxuKxWP2izYRddYcrLGXNMzXLKRD8DAvcSkRWnynsdpcp1f7fVkAVXi5P6ZbPeZYjoZJi2K7Abp1sQWMLaB
-export async function createBuyTransaction(
-  escrow: PublicKey,
-  escrowState: EscrowState,
-  buyer: PublicKey
-) {
-  const buyerAta = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-    escrowState.mint,
-    buyer
-  );
-  const ixs = [
-    Token.createAssociatedTokenAccountInstruction(
+export class SolseaEscrow {
+  static async fetch(connection: Connection, pubkey: PublicKey) {
+    const accountInfo = await connection.getAccountInfo(pubkey);
+    return EscrowStateLayout.decode(accountInfo.data);
+  }
+
+  // buy tx as an example https://explorer.solana.com/tx/5eE2FRxuKxWP2izYRddYcrLGXNMzXLKRD8DAvcSkRWnynsdpcp1f7fVkAVXi5P6ZbPeZYjoZJi2K7Abp1sQWMLaB
+  static async createBuyTransaction(
+    escrow: PublicKey,
+    escrowState: SolseaEscrowState,
+    buyer: PublicKey
+  ) {
+    const buyerAta = await Token.getAssociatedTokenAddress(
       ASSOCIATED_TOKEN_PROGRAM_ID,
       TOKEN_PROGRAM_ID,
       escrowState.mint,
-      buyerAta,
-      buyer,
       buyer
-    ),
-    await createBuyInstruction(escrow, escrowState, buyer, buyerAta),
-  ];
-  return new Transaction({ feePayer: buyer }).add(...ixs);
+    );
+    const ixs = [
+      Token.createAssociatedTokenAccountInstruction(
+        ASSOCIATED_TOKEN_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
+        escrowState.mint,
+        buyerAta,
+        buyer,
+        buyer
+      ),
+      await createBuyInstruction(escrow, escrowState, buyer, buyerAta),
+    ];
+    return new Transaction({ feePayer: buyer }).add(...ixs);
+  }
 }

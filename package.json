@@ -8,6 +8,7 @@
     "start": "ts-node --files --project tsconfig.json src/index.ts"
   },
   "dependencies": {
+    "@metaplex-foundation/mpl-token-metadata": "^1.2.4",
     "@solana/buffer-layout": "^4.0.0",
     "@solana/spl-token": "0.1.*",
     "@solana/web3.js": "^1.35.0",
