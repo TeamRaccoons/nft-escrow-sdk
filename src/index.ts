@@ -7,20 +7,6 @@ const USER_PUBLIC_KEY = new PublicKey(
   "AXUChvpRwUUPMJhA4d23WcoyAL7W8zgAeo7KoH57c75F"
 );
 
-// https://explorer.solana.com/tx/43EHPCWRJB62m26KZ9YVUxea3PJGMc5dNtcFz3jLteD3vt3HXFcddn5AfeNkYmzqHFjLXMrQ1g9qHLr4buiYd6mn
-async function magicEdenInv(connection: Connection) {
-  const ai = await connection.getAccountInfo(
-    new PublicKey("B6PfupfKToouqZZntGoCrso1CJynWzj1oQAX5ShpjuG1")
-  );
-  // Anchor discriminator?!?
-  console.log(ai.data.slice(8 + 2 * 32));
-  console.log(ai.data.readBigUint64LE(8 + 2 * 32));
-  const seller = new PublicKey("9hmSsd3MUjCRKZD6g5rf8Hf1E3KTDakbkw31CAWhUQSu");
-  console.log("seller", seller.toBuffer());
-  console.log(ai.data.indexOf(seller.toBuffer()));
-  console.log(new PublicKey(ai.data.slice(8 + 2 * 32, 8 + 3 * 32)).toBase58());
-}
-
 async function solseaTest(connection: Connection) {
   const escrowPk = new PublicKey("1aQYQjPHsBxZrdDWtFbGrdjjts1uwLTasfaTpuE3QXd");
 
@@ -48,6 +34,7 @@ async function magicEdenTest(connection: Connection) {
     escrowState,
     USER_PUBLIC_KEY
   );
+  console.log(buyTx.instructions[0].data);
   const { value } = await connection.simulateTransaction(buyTx);
   console.log(value);
 }

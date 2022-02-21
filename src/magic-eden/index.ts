@@ -24,7 +24,7 @@ const MAGIC_EDEN_SOMETHING = new PublicKey(
 );
 
 const MAGIC_EDEN_PLATFORM_FEE_ACCOUNT = new PublicKey(
-  "GUfCR9mK6azb9vcpsxgXyj7XRPAKJd4KMHTTVvtncGgp"
+  "2NZukH2TXpcuZP4htiuT8CFxcaQSWzkkR6kepSWnZ24Q"
 );
 
 interface EscrowState {
@@ -88,6 +88,8 @@ async function createBuyInstruction(
       isSigner: false,
     });
   }
+
+  console.log(keys.map(({ pubkey }) => pubkey.toBase58()));
 
   return {
     programId: MAGIC_EDEN_ESCROW_PROGRAM_ID,
